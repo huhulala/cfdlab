@@ -95,21 +95,24 @@ int main(int argn, char** args){
 	RS = matrix(0, imax+1, 0, jmax+1);
 
 	init_uvp(UI, VI, PI, imax, jmax, U, V, P);
-	while(t < t_end)
+
+	while(t < t_end && n < 200) /* TODO n-Schranke wieder entfernen! */
 	{
 		calculate_dt(Re, tau, &dt, dx, dy, imax, jmax, U, V);
 		boundaryvalues(imax, jmax, U, V);
 		calculate_fg(Re, GX, GY, alpha, dt, dx, dy, imax, jmax, U, V, F, G);
 		calculate_rs(dt, dx, dy, imax, jmax, F, G, RS);
 		it = 0;
-		res = 0.0;
-		while(it < itermax && res < eps)
+		/* set initial residual TODO: right? */
+		res = eps+1;
+
+		while(it < itermax && res > eps)
 		{
 			sor(omg, dx, dy, imax, jmax, P, RS, &res);
 			it++;
 		}
 		calculate_uv(dt, dx, dy, imax, jmax, U, V, F, G, P);
-		szProblem = "Output";/* TODO: Output-File + was ist mit "if necessary" gemeint? */
+		szProblem = "./Out/Output";
 		write_vtkFile(szProblem, n, xlength, ylength, imax, jmax, dx, dy, U, V, P);
 		t = t + dt;
 		n++;

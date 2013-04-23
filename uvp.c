@@ -5,7 +5,7 @@ void calculate_fg(double Re, double GX, double GY, double alpha, double dt,
 		double dx, double dy, int imax, int jmax, double **U, double **V,
 		double **F, double **G)
 {
-	/* See formular 9 and 10 in combination with formulars 4 and 5 */
+	/* See formula 9 and 10 in combination with formulas 4 and 5 */
 	int i;
 	int j;
 
@@ -19,15 +19,15 @@ void calculate_fg(double Re, double GX, double GY, double alpha, double dt,
 						1/Re * (1/dx * (U[i-1][j] - 2*U[i][j] + U[i+1][j])/(dx*dx) +
 								(U[i][j-1] - 2*U[i][j] + U[i][j+1])/(dy*dy))
 						/* - du²/dx */
-						- 1/dx*(((U[i][j] + U[i+1][j])/2)*((U[i][j] + U[i+1][j])/2) -
+						- (1/dx*(((U[i][j] + U[i+1][j])/2)*((U[i][j] + U[i+1][j])/2) -
 								((U[i-1][j] + U[i][j])/2)*((U[i-1][j] + U[i][j])/2)) +
 								alpha/dx * (fabs(U[i][j] +U[i+1][j])/2*(U[i][j]-U[i+1][j])/2 -
-										fabs(U[i-1][j]+U[i][j])/2*(U[i-1][j]-U[i][j])/2)
+										fabs(U[i-1][j]+U[i][j])/2*(U[i-1][j]-U[i][j])/2))
 						/* - duv/dy */
-						- 1/dy*((V[i][j]+V[i+1][j])*(U[i][j]+U[i][j+1])/4 -
+						- (1/dy*((V[i][j]+V[i+1][j])*(U[i][j]+U[i][j+1])/4 -
 								(V[i][j-1] + V[i+1][j-1])*(U[i][j-1]+U[i][j])/4) +
 								alpha/dy * (fabs(V[i][j] +V[i+1][j])/2*(U[i][j]-U[i][j+1])/2 -
-										fabs(V[i][j-1]+V[i+1][j-1])/2*(U[i][j-1]-U[i][j])/2)
+										fabs(V[i][j-1]+V[i+1][j-1])/2*(U[i][j-1]-U[i][j])/2))
 						+ GX);
 			if(j<=jmax-1)
 				G[i][j] = V[i][j] + dt * (
@@ -35,17 +35,29 @@ void calculate_fg(double Re, double GX, double GY, double alpha, double dt,
 						1/Re *(1/dx * (V[i-1][j] - 2*V[i][j] + V[i+1][j])/(dx*dx) +
 								(V[i][j-1] - 2*V[i][j] + V[i][j+1])/(dy*dy))
 						/* - duv/dx */
-						- 1/dx*((U[i][j] + U[i][j+1])*(V[i][j] + V[i+1][j])/4 -
+						- (1/dx*((U[i][j] + U[i][j+1])*(V[i][j] + V[i+1][j])/4 -
 								(U[i-1][j] + U[i-1][j+1])*(V[i-1][j] + V[i][j])/4) +
 								alpha/dx * (fabs(U[i][j] + U[i][j+1])*(V[i][j] - V[i+1][j])/4 -
-										fabs(U[i-1][j] + U[i-1][j+1])*(V[i-1][j] - V[i][j])/4)
+										fabs(U[i-1][j] + U[i-1][j+1])*(V[i-1][j] - V[i][j])/4))
 						/* - dv²/dy */
-						- 1/dy*(((V[i][j] + V[i][j+1])/2)*((V[i][j] + V[i][j+1])/2) -
+						- (1/dy*(((V[i][j] + V[i][j+1])/2)*((V[i][j] + V[i][j+1])/2) -
 								((V[i][j-1] + V[i][j])/2)*((V[i][j-1] + V[i][j])/2)) +
 								alpha/dy * (fabs(V[i][j] + V[i][j+1])*(V[i][j] - V[i][j+1])/4 -
-										fabs(V[i][j-1] + V[i][j])*(V[i][j-1] - V[i][j])/4)
+										fabs(V[i][j-1] + V[i][j])*(V[i][j-1] - V[i][j])/4))
 						+ GY);
 		}
+	}
+
+	/* See formula 17 */
+	for(j=1; j<=jmax; j++)
+	{
+		F[0][j] = U[0][j];
+		F[imax][j] = U[imax][j];
+	}
+	for(i=1; i<=imax; i++)
+	{
+		G[i][0] = V[i][0];
+		G[i][jmax] = V[i][jmax];
 	}
 }
 
@@ -53,7 +65,7 @@ void calculate_fg(double Re, double GX, double GY, double alpha, double dt,
 void calculate_rs(double dt, double dx, double dy, int imax, int jmax,
 		double **F, double **G, double **RS)
 {
-	/* Right hand side of formular 11 */
+	/* Right hand side of formula 11 */
 	int i;
 	int j;
 
@@ -70,7 +82,7 @@ void calculate_rs(double dt, double dx, double dy, int imax, int jmax,
 void calculate_dt(double Re, double tau, double *dt, double dx, double dy,
 		int imax, int jmax, double **U, double **V)
 {
-	/* See formular 13 */
+	/* See formula 13 */
 	double umax = U[0][0];
 	double vmax = V[0][0];
 	double dt1;
@@ -93,13 +105,13 @@ void calculate_dt(double Re, double tau, double *dt, double dx, double dy,
 	dt2 = dx/fabs(umax);
 	dt3 = dy/fabs(vmax);
 
-	if(dt1 > dt2)
-		if(dt3 > dt1)
+	if(dt1 < dt2)
+		if(dt3 < dt1)
 			*dt = tau * dt3;
 		else
 			*dt = tau * dt1;
 	else
-		if(dt3 > dt2)
+		if(dt3 < dt2)
 			*dt = tau * dt3;
 		else
 			*dt = tau * dt2;
@@ -109,7 +121,7 @@ void calculate_dt(double Re, double tau, double *dt, double dx, double dy,
 void calculate_uv(double dt, double dx, double dy, int imax, int jmax,
 		double **U, double **V, double **F, double **G, double **P)
 {
-	/* See formular 7 and 8 */
+	/* See formula 7 and 8 */
 	int i;
 	int j;
 

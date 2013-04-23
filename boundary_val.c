@@ -2,23 +2,24 @@
 
 void boundaryvalues(int imax, int jmax, double **U, double **V)
 {
+	/* See formula 14 and 15 */
 	int i;
 	int j;
-	for(i=0; i<=imax; i++)
+	for(i=1; i<=imax; i++)
 	{
-		/* upper and lower bounder with corners */
-		U[i][0] = 1;
-		U[i][jmax] = 0.0;
+		/* upper and lower bounder without corners */
+		U[i][0] = -U[i][1];
+		/* U[i][jmax+1] = -U[i][jmax]; Moving Wall instead of no-slip */
+		U[i][jmax+1] = -U[i][jmax] + 2;
 		V[i][0] = 0.0;
 		V[i][jmax] = 0.0;
 	}
-	for(j=0; j<=jmax; j++)
+	for(j=1; j<=jmax; j++)
 	{
 		/* left and right border without corners */
 		U[0][j] = 0.0;
 		U[imax][j] = 0.0;
-		V[0][j] = 0.0;
-		V[imax][j] = 0.0;
+		V[0][j] = -V[1][j];
+		V[imax+1][j] = -V[imax][j];
 	}
 }
-
