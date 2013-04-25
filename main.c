@@ -96,7 +96,7 @@ int main(int argn, char** args){
 
 	init_uvp(UI, VI, PI, imax, jmax, U, V, P);
 
-	while(t < t_end && n < 200) /* TODO n-Schranke wieder entfernen! */
+	while(t < t_end && n < 600) /* TODO n-Schranke wieder entfernen! */
 	{
 		calculate_dt(Re, tau, &dt, dx, dy, imax, jmax, U, V);
 		boundaryvalues(imax, jmax, U, V);

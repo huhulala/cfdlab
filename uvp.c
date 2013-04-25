@@ -16,7 +16,7 @@ void calculate_fg(double Re, double GX, double GY, double alpha, double dt,
 			if(i<=imax-1)
 				F[i][j] = U[i][j] + dt * (
 						/* 1/Re * (d²u/dx² + d²u/dy²) */
-						1/Re * (1/dx * (U[i-1][j] - 2*U[i][j] + U[i+1][j])/(dx*dx) +
+						1/Re * ((U[i-1][j] - 2*U[i][j] + U[i+1][j])/(dx*dx) +
 								(U[i][j-1] - 2*U[i][j] + U[i][j+1])/(dy*dy))
 						/* - du²/dx */
 						- (1/dx*(((U[i][j] + U[i+1][j])/2)*((U[i][j] + U[i+1][j])/2) -
@@ -32,7 +32,7 @@ void calculate_fg(double Re, double GX, double GY, double alpha, double dt,
 			if(j<=jmax-1)
 				G[i][j] = V[i][j] + dt * (
 						/* 1/Re * (d²v/dx² + d²v/dy²) */
-						1/Re *(1/dx * (V[i-1][j] - 2*V[i][j] + V[i+1][j])/(dx*dx) +
+						1/Re *((V[i-1][j] - 2*V[i][j] + V[i+1][j])/(dx*dx) +
 								(V[i][j-1] - 2*V[i][j] + V[i][j+1])/(dy*dy))
 						/* - duv/dx */
 						- (1/dx*((U[i][j] + U[i][j+1])*(V[i][j] + V[i+1][j])/4 -
@@ -83,8 +83,8 @@ void calculate_dt(double Re, double tau, double *dt, double dx, double dy,
 		int imax, int jmax, double **U, double **V)
 {
 	/* See formula 13 */
-	double umax = U[0][0];
-	double vmax = V[0][0];
+	double umax = fabs(U[1][1]);
+	double vmax = fabs(V[1][1]);
 	double dt1;
 	double dt2;
 	double dt3;
@@ -94,16 +94,16 @@ void calculate_dt(double Re, double tau, double *dt, double dx, double dy,
 	{
 		for(j=1; j<=jmax; j++)
 		{
-			if(U[i][j] > umax)
-				umax = U[i][j];
-			if(V[i][j] > vmax)
-				vmax = V[i][j];
+			if(fabs(U[i][j]) > umax)
+				umax = fabs(U[i][j]);
+			if(fabs(V[i][j]) > vmax)
+				vmax = fabs(V[i][j]);
 		}
 	}
 
 	dt1 = Re/2 / (1/(dx*dx) + 1/(dy*dy));
-	dt2 = dx/fabs(umax);
-	dt3 = dy/fabs(vmax);
+	dt2 = dx/umax;
+	dt3 = dy/vmax;
 
 	if(dt1 < dt2)
 		if(dt3 < dt1)
