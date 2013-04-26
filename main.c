@@ -96,7 +96,7 @@ int main(int argn, char** args){
 
 	init_uvp(UI, VI, PI, imax, jmax, U, V, P);
 
-	while(t < t_end && n < 600) /* TODO n-Schranke wieder entfernen! */
+	while(t < t_end)
 	{
 		calculate_dt(Re, tau, &dt, dx, dy, imax, jmax, U, V);
 		boundaryvalues(imax, jmax, U, V);
@@ -116,7 +116,13 @@ int main(int argn, char** args){
 		write_vtkFile(szProblem, n, xlength, ylength, imax, jmax, dx, dy, U, V, P);
 		t = t + dt;
 		n++;
+		if(n % 1000 == 0)
+		{
+			printf("Step-counter: %i, time: %f\n", n, t);
+		}
 	}
+	szProblem = "./Out/OutputFinal";
+	write_vtkFile(szProblem, 0, xlength, ylength, imax, jmax, dx, dy, U, V, P);
 
 	free_matrix(U, 0, imax+1, 0, jmax+1);
 	free_matrix(V, 0, imax+1, 0, jmax+1);

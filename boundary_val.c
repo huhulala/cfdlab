@@ -10,7 +10,7 @@ void boundaryvalues(int imax, int jmax, double **U, double **V)
 		/* upper and lower bounder without corners */
 		U[i][0] = -U[i][1];
 		/* U[i][jmax+1] = -U[i][jmax]; Moving Wall instead of no-slip TODO: Correct? */
-		U[i][jmax+1] = -U[i][jmax] + 7000;
+		U[i][jmax+1] = -U[i][jmax] + 2;
 		V[i][0] = 0.0;
 		V[i][jmax] = 0.0;
 	}
