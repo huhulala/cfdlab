@@ -6,7 +6,6 @@
 #include "sor.h"
 #include <stdio.h>
 
-
 /**
  * The main operation reads the configuration file, initializes the scenario and
  * contains the main loop. So here are the individual steps of the algorithm:
@@ -40,7 +39,7 @@
  *   iteration loop the operation sor() is used.
  * - calculate_uv() Calculate the velocity at the next time step.
  */
-int main(int argn, char** args){
+int main(int argn, char** args) {
 	char* szFileName;
 	double Re;
 	double UI;
@@ -54,12 +53,12 @@ int main(int argn, char** args){
 	double dt;
 	double dx;
 	double dy;
-	int  imax;
-	int  jmax;
+	int imax;
+	int jmax;
 	double alpha;
 	double omg;
 	double tau;
-	int  itermax;
+	int itermax;
 	double eps;
 	double dt_value;
 
@@ -67,6 +66,7 @@ int main(int argn, char** args){
 	double res;
 	double t;
 	int n;
+	int i,j;
 
 	/* Output file */
 	char* szProblem;
@@ -79,51 +79,71 @@ int main(int argn, char** args){
 	double **F;
 	double **G;
 
+	szProblem = "./Out/Output";
 	/* Algorithm (see section 5) */
 	szFileName = "./cavity100.dat";
-	read_parameters(szFileName, &Re, &UI, &VI, &PI, &GX, &GY, &t_end,
-			&xlength, &ylength, &dt, &dx, &dy, &imax, &jmax, &alpha, &omg,
-			&tau, &itermax, &eps, &dt_value);
+	read_parameters(szFileName, &Re, &UI, &VI, &PI, &GX, &GY, &t_end, &xlength,
+			&ylength, &dt, &dx, &dy, &imax, &jmax, &alpha, &omg, &tau,
+			&itermax, &eps, &dt_value);
 	t = 0.0;
 	n = 0;
+
 	/* allocate memory for the arrays */
-	U = matrix(0, imax+1, 0, jmax+1);
-	V = matrix(0, imax+1, 0, jmax+1);
-	P = matrix(0, imax+1, 0, jmax+1);
-	F = matrix(0, imax+1, 0, jmax+1);
-	G = matrix(0, imax+1, 0, jmax+1);
-	RS = matrix(0, imax+1, 0, jmax+1);
+	U = matrix(0, imax + 1, 0, jmax + 1);
+	V = matrix(0, imax + 1, 0, jmax + 1);
+	P = matrix(0, imax + 1, 0, jmax + 1);
+	F = matrix(0, imax + 1, 0, jmax + 1);
+	G = matrix(0, imax + 1, 0, jmax + 1);
+	RS = matrix(0, imax + 1, 0, jmax + 1);
 
 	init_uvp(UI, VI, PI, imax, jmax, U, V, P);
 
-	while(t < t_end && n < 600) /* TODO n-Schranke wieder entfernen! */
+	while (t < t_end && n < 300) /* TODO n-Schranke wieder entfernen! */
 	{
+		/*calculate the delta values*/
 		calculate_dt(Re, tau, &dt, dx, dy, imax, jmax, U, V);
+		/*calculate the boundary values*/
 		boundaryvalues(imax, jmax, U, V);
+		/*calculate F&G*/
 		calculate_fg(Re, GX, GY, alpha, dt, dx, dy, imax, jmax, U, V, F, G);
+		/*calculate righthand site*/
 		calculate_rs(dt, dx, dy, imax, jmax, F, G, RS);
-		it = 0;
-		/* set initial residual TODO: right? */
-		res = eps+1;
 
-		while(it < itermax && res > eps)
-		{
+		/* set initial residual*/
+		it = 0;
+		res = eps + 1;
+
+		while (it < itermax && res > eps) {
+
+			for (i = 1; i <= imax; i++) {
+				P[i][0] = P[i][1];
+				P[i][jmax + 1] = P[i][jmax];
+			}
+
+			for (j = 1; j <= jmax; j++) {
+				P[0][j] = P[1][j];
+				P[imax + 1][j] = P[imax][j];
+			}
+
 			sor(omg, dx, dy, imax, jmax, P, RS, &res);
 			it++;
 		}
 		calculate_uv(dt, dx, dy, imax, jmax, U, V, F, G, P);
-		szProblem = "./Out/Output";
-		write_vtkFile(szProblem, n, xlength, ylength, imax, jmax, dx, dy, U, V, P);
+		write_vtkFile(szProblem, n, xlength, ylength, imax, jmax, dx, dy, U, V,
+				P);
 		t = t + dt;
 		n++;
 	}
 
-	free_matrix(U, 0, imax+1, 0, jmax+1);
-	free_matrix(V, 0, imax+1, 0, jmax+1);
-	free_matrix(P, 0, imax+1, 0, jmax+1);
-	free_matrix(F, 0, imax+1, 0, jmax+1);
-	free_matrix(G, 0, imax+1, 0, jmax+1);
-	free_matrix(RS, 0, imax+1, 0, jmax+1);
+	write_vtkFile(szProblem, n, xlength, ylength, imax, jmax, dx, dy, U, V,
+				P);
+
+	free_matrix(U, 0, imax + 1, 0, jmax + 1);
+	free_matrix(V, 0, imax + 1, 0, jmax + 1);
+	free_matrix(P, 0, imax + 1, 0, jmax + 1);
+	free_matrix(F, 0, imax + 1, 0, jmax + 1);
+	free_matrix(G, 0, imax + 1, 0, jmax + 1);
+	free_matrix(RS, 0, imax + 1, 0, jmax + 1);
 
 	return -1;
 }
