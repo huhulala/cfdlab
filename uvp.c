@@ -15,16 +15,18 @@ void calculate_fg(double Re, double GX, double GY, double alpha, double dt,
 	{
 		/********** calculate F **********/
 		if (i <= imax - 1)
-			F[i][j] = U[i][j] + dt * (
-			/* 1/Re * (d²u/dx² + d²u/dy²) */
-			1 / Re * (d2udx2(i, j, U, dx) + d2udy2(i, j, U, dy))
-			/* - du²/dx */
-			- du2dx(i, j, U, dx, alpha)
-			/* - duv/dy */
-			- duvdy(i, j, U, V, dy, alpha) + GX);
-
+		{
+				F[i][j] = U[i][j] + dt * (
+				/* 1/Re * (d²u/dx² + d²u/dy²) */
+				1 / Re * (d2udx2(i, j, U, dx) + d2udy2(i, j, U, dy))
+				/* - du²/dx */
+				- du2dx(i, j, U, dx, alpha)
+				/* - duv/dy */
+				- duvdy(i, j, U, V, dy, alpha) + GX);
+		}
 		/********** calculate G **********/
 		if (j <= jmax - 1)
+		{
 				G[i][j] = V[i][j] + dt * (
 				/* 1/Re * (d²v/dx² + d²v/dy²) */
 				1 / Re * (d2vdx2(i, j, V, dx) + d2vdy2(i, j, V, dy))
@@ -32,6 +34,7 @@ void calculate_fg(double Re, double GX, double GY, double alpha, double dt,
 				- duvdx(i, j, U, V, dx, dy, alpha)
 				/* - dv²/dy */
 				- dv2dy(i, j, V, dy, alpha) + GY);
+		}
 	}
 
 	/* calculate boundary values -  see formula 17 */
