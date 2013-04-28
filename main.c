@@ -110,10 +110,10 @@ int main(int argn, char** args) {
 		t = t + dt;
 		n++;
 		ti++;
-		if(verbose && n % 1000 == 0)
+		if(verbose)
 		{
-			printf("Step-counter: %i, time: %f, Interations: %i \n", n, t,it);
-			printf("Time Step: %i, U[imax/2][7*jmax/8]: %f \n", ti, U[imax/2][7*jmax/8]);
+			if(n % 1000 == 0)	printf("Step-counter: %i, time: %f, Interations: %i \n", n, t,it);
+		    if(n == 100)printf("U[imax/2][7*jmax/8]: %f \n", U[imax/2][7*jmax/8]);
 		}
 	}
 	szProblem = "./out2/OutputFinal";
