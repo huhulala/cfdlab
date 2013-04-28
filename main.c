@@ -40,38 +40,19 @@
  * - calculate_uv() Calculate the velocity at the next time step.
  */
 int main(int argn, char** args) {
+
 	char* szFileName;
-	double Re;
-	double UI;
-	double VI;
-	double PI;
-	double GX;
-	double GY;
-	double t_end;
-	double xlength;
-	double ylength;
-	double dt;
-	double dx;
-	double dy;
-	int imax;
-	int jmax;
-	double alpha;
-	double omg;
-	double tau;
-	int itermax;
-	double eps;
-	double dt_value;
+	double Re,UI,VI,PI,GX,GY;
+	double t_end,xlength,ylength;
+	double dt,dx,dy;
+	double alpha,omg,tau;
+	double eps, dt_value,res, t;
+	int itermax,it,imax,jmax, n ,ti;
 
-	int it;
-	double res;
-	double t;
-	int n;
-	int i,j;
-
-	/* Output file */
+	/* Output filename */
 	char* szProblem;
 
-	/* Arrays */
+	/* arrays */
 	double **U;
 	double **V;
 	double **P;
@@ -79,8 +60,10 @@ int main(int argn, char** args) {
 	double **F;
 	double **G;
 
-	szProblem = "./Out/Output";
-	/* Algorithm (see section 5) */
+	int verbose = 1;
+
+	/*************** the algorithm (see section 5) *************************/
+	szProblem = "./re10000/Output";
 	szFileName = "./cavity100.dat";
 	read_parameters(szFileName, &Re, &UI, &VI, &PI, &GX, &GY, &t_end, &xlength,
 			&ylength, &dt, &dx, &dy, &imax, &jmax, &alpha, &omg, &tau,
@@ -96,9 +79,11 @@ int main(int argn, char** args) {
 	G = matrix(0, imax + 1, 0, jmax + 1);
 	RS = matrix(0, imax + 1, 0, jmax + 1);
 
+	/* init uvp */
 	init_uvp(UI, VI, PI, imax, jmax, U, V, P);
 
-	while (t < t_end && n < 300) /* TODO n-Schranke wieder entfernen! */
+	ti = 0;
+	while(t < t_end)
 	{
 		/*calculate the delta values*/
 		calculate_dt(Re, tau, &dt, dx, dy, imax, jmax, U, V);
@@ -113,31 +98,28 @@ int main(int argn, char** args) {
 		it = 0;
 		res = eps + 1;
 
-		while (it < itermax && res > eps) {
-
-			for (i = 1; i <= imax; i++) {
-				P[i][0] = P[i][1];
-				P[i][jmax + 1] = P[i][jmax];
-			}
-
-			for (j = 1; j <= jmax; j++) {
-				P[0][j] = P[1][j];
-				P[imax + 1][j] = P[imax][j];
-			}
-
+		while (it < itermax && res > eps)
+		{
 			sor(omg, dx, dy, imax, jmax, P, RS, &res);
 			it++;
 		}
+		/* calculate uv */
 		calculate_uv(dt, dx, dy, imax, jmax, U, V, F, G, P);
 		write_vtkFile(szProblem, n, xlength, ylength, imax, jmax, dx, dy, U, V,
 				P);
 		t = t + dt;
 		n++;
+		ti++;
+		if(verbose && n % 1000 == 0)
+		{
+			printf("Step-counter: %i, time: %f, Interations: %i \n", n, t,it);
+			printf("Time Step: %i, U[imax/2][7*jmax/8]: %f \n", ti, U[imax/2][7*jmax/8]);
+		}
 	}
+	szProblem = "./out2/OutputFinal";
+	write_vtkFile(szProblem, 0, xlength, ylength, imax, jmax, dx, dy, U, V, P);
 
-	write_vtkFile(szProblem, n, xlength, ylength, imax, jmax, dx, dy, U, V,
-				P);
-
+	/* free arrays */
 	free_matrix(U, 0, imax + 1, 0, jmax + 1);
 	free_matrix(V, 0, imax + 1, 0, jmax + 1);
 	free_matrix(P, 0, imax + 1, 0, jmax + 1);
