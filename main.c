@@ -192,8 +192,6 @@ int main(int argn, char** args) {
 		    	else isFollowingSorIteration = 0;
 		    }
 		    MPI_Bcast(&isFollowingSorIteration, 1, MPI_INT, 0, MPI_COMM_WORLD);
-/*		    sprintf(message, "isFollowingSor: %d, res: %f, eps: %f, t: %f", isFollowingSorIteration, res, eps, t);
-		    Programm_Sync(message);*/
 		}
 		/* calculate uv */
 		calculate_uv(dt, dx, dy, imax_local, jmax_local, U, V, F, G, P, rank_l, rank_r, rank_b, rank_t);
@@ -204,51 +202,12 @@ int main(int argn, char** args) {
 		{
 			output_vtk(U, V, P, il, ir, jb, jt, imax, jmax, omg_i, omg_j, iproc, jproc, dx, dy,
 			                n, szProblem);
-			Programm_Sync("Wrote output");
-
-		}		t = t + dt;
+		}
+		t = t + dt;
 		n++;
-		if(rankOfMainProcess == 0)
-		{
 
-			printf("F\n");
-			print_matrix(F, 1, imax_local+1, 1, jmax_local+1);
-			/*printf("RS\n");
-			print_matrix(RS, 1, imax_local+1, 1, jmax_local+1);
-			printf("P (rank %d) (Sor-Its: %d, res: %f)", rankOfMainProcess, it, res);
-			print_matrix(P, 1, imax_local+1, 1, jmax_local+1);*/
-			printf("U\n");
-			print_matrix(U, 1, imax_local+1, 1, jmax_local+1);
-		}
-		Programm_Sync("Dummy");
-		if(rankOfMainProcess == 1)
-		{
-			printf("F\n");
-			print_matrix(F, 1, imax_local+1, 1, jmax_local+1);
-			/*printf("RS\n");
-			print_matrix(RS, 1, imax_local+1, 1, jmax_local+1);
-			printf("P (rank %d) (Sor-Its: %d, res: %f)", rankOfMainProcess, it, res);
-			print_matrix(P, 1, imax_local+1, 1, jmax_local+1);*/
-			printf("U\n");
-			print_matrix(U, 1, imax_local+1, 1, jmax_local+1);
-		}
-		Programm_Sync("Dummy2");
-		if(rankOfMainProcess == 2)
-		{
-			printf("F\n");
-			print_matrix(F, 1, imax_local+1, 1, jmax_local+1);
-			/*printf("RS\n");
-			print_matrix(RS, 1, imax_local+1, 1, jmax_local+1);
-			printf("P (rank %d) (Sor-Its: %d, res: %f)", rankOfMainProcess, it, res);
-			print_matrix(P, 1, imax_local+1, 1, jmax_local+1);*/
-			printf("U\n");
-			print_matrix(U, 1, imax_local+1, 1, jmax_local+1);
-		}
-
-		sprintf(message, "n = %d, it = %d", n, it);
+		sprintf(message, "n = %d, it = %d, t = %f", n, it, t);
 		Programm_Sync(message);
-		if(n>1)
-			break;
 	}
 
 	/* free arrays */

@@ -24,7 +24,7 @@ void calculate_fg(double Re, double GX, double GY, double alpha, double dt,
 	for (i = istart; i <= imax; i++)
 	{
 		/********** calculate F **********/
-		if (!(rank_r == MPI_PROC_NULL && i > imax-1)) /* not a bounder */
+		if (!(rank_r == MPI_PROC_NULL && i > imax-1) && j>1) /* not a bounder */
 		{
 				F[i][j] = U[i][j] + dt * (
 				/* 1/Re * (d²u/dx² + d²u/dy²) */
@@ -35,7 +35,7 @@ void calculate_fg(double Re, double GX, double GY, double alpha, double dt,
 				- duvdy(i, j, U, V, dy, alpha) + GX);
 		}
 		/********** calculate G **********/
-		if (!(rank_t == MPI_PROC_NULL && j > jmax-1))
+		if (!(rank_t == MPI_PROC_NULL && j > jmax-1) && i>1)
 		{
 				G[i][j] = V[i][j] + dt * (
 				/* 1/Re * (d²v/dx² + d²v/dy²) */
