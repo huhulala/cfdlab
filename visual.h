@@ -22,16 +22,16 @@
  * @author Tobias Neckel
  */
 void write_vtkFile(const char *szProblem,
-		  int    timeStepNumber,
-		  double xlength,
-                  double ylength,
-                  int    imax,
-                  int    jmax,
-		  double dx,
-		  double dy,
-                  double **U,
-                  double **V,
-                  double **P);
+		           int    timeStepNumber,
+		           double xlength,
+                   double ylength,
+                   int    imax,
+                   int    jmax,
+		           double dx,
+		           double dy,
+                   double **U,
+                   double **V,
+                   double **P);
 
 /**
  * Method for writing header information in vtk format. 
@@ -44,8 +44,11 @@ void write_vtkFile(const char *szProblem,
  * 
  * @author Tobias Neckel
  */
-void write_vtkHeader( FILE *fp, int imax, int jmax, 
-                      double dx, double dy);
+ void write_vtkHeader( FILE *fp, 
+                       int imax, 
+                       int jmax, 
+                       double dx, 
+                       double dy);
 
 /**
  * Method for writing grid coordinate information in vtk format. 
@@ -58,7 +61,49 @@ void write_vtkHeader( FILE *fp, int imax, int jmax,
  * 
  * @author Tobias Neckel
  */
-void write_vtkPointCoordinates( FILE *fp, int imax, int jmax, 
-                                double dx, double dy);
+void write_vtkPointCoordinates( FILE *fp,
+								int imax_local,
+								int jmax_local,
+                                int imax, 
+                                int jmax, 
+                                int omg_i,
+                                int omg_j,
+                                int iproc,
+                                int jproc,
+                                double dx, 
+                                double dy);
+
+
+
+void parallelContainer(double** U, 
+                       double** V, 
+                       double** P, 
+                       int omg_i,
+                       int omg_j,
+                       int imax, 
+                       int jmax,
+                       int iproc,
+                       int jproc,
+                       int nTS,             /* number of timestep */
+                       char* outputFile); 
+
+void output_vtk(double** U,
+                double** V,
+                double** P,
+                int il,
+                int ir,
+                int jb,
+                int jt,
+                int imax, 
+                int jmax,
+                int omg_i,
+                int omg_j,
+                int iproc,
+                int jproc,
+                double dx,
+                double dy,
+                int timeStepNumber,
+                char* outputFile
+                );
 
 #endif

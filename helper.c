@@ -233,8 +233,13 @@ void write_matrix( const char* szFileName,       /* filename */
                                                /* x-direction */
 		 double ylength,	       /* size of the geometry in */
                                                /* y-direction  */
-		   int fFirst ) 	       /* 0 == append, else overwrite*/
+		   int fFirst,  	       /* 0 == append, else overwrite*/
+                   int bPart )                 /* 0 for files corresponding to subdomains, 
+                                                  in this case xlength, ylenght, nrl, nrh, ncl, nch are written
+                                                  at the beginning of the file,   
+                                                  1 for whole region, no additional range information is written */         
 {
+  printf("write matrix %s", szFileName);
    int i, j;
    FILE * fh = 0;
    int nSize = (nrh-nrl+1) * (nch-ncl+1);
@@ -251,7 +256,8 @@ void write_matrix( const char* szFileName,       /* filename */
 	   ERROR( szBuff );
        }
        
-/*       fprintf( fh,"%f\n%f\n%d\n%d\n%d\n%d\n", xlength, ylength, nrl, nrh, ncl, nch ); */
+       if(bPart==0)
+         fprintf( fh,"%f\n%f\n%d\n%d\n%d\n%d\n", xlength, ylength, nrl, nrh, ncl, nch );
    }
    else
    {
@@ -280,47 +286,76 @@ void write_matrix( const char* szFileName,       /* filename */
    free( tmp );
 }
 
-
-void read_matrix( const char* szFileName,       /* filename */
-		   double **m,		       /* matrix */
+void print_matrix(
+		   double **m,		   /* matrix */
 		   int nrl,		       /* first column */
 		   int nrh,		       /* last column */
 		   int ncl,		       /* first row */
 		   int nch		       /* last row */
-                  ) 	  
+	 )
 {
-   int i, j;
-   FILE * fh = 0;
-   int nSize = (nrh-nrl+1) * (nch-ncl+1);
-   float *tmp = (float *)malloc( (size_t)(nSize * sizeof(float)));
-   int k = 0;
-
-       fh = fopen( szFileName, "r");	/* overwrite file/write new file */
-       if( fh == NULL )			/* opening failed ? */
-       {
-	   char szBuff[80];
-	   sprintf( szBuff, "Can not read file %s !!!", szFileName );
-	   ERROR( szBuff );
-       }
-
-
-   fread( tmp, sizeof(float), nSize, fh);
-
-   for( j = ncl; j <= nch; j++)
-       for( i = nrl; i <= nrh; i++)
-	   m[i][j]=tmp[k++];
-
-   if( fclose(fh) )
-   {
-       char szBuff[80];
-       /*orig bug:
-       sscanf( szBuff, "Inputfile %s cannot be closed", szFileName );*/
-       sprintf( szBuff, "Inputfile %s cannot be closed", szFileName );
-       ERROR( szBuff );
-   };
-
-   free( tmp );
+	 int i, j;
+	 for( j = ncl; j <= nch; j++)
+	 {
+	       for( i = nrl; i <= nrh; i++)
+	       {
+	    	   printf("%i-%i: %f  ", i,j, (float)m[i][j]);
+	       }
+	       printf("\n ");
+	   }
 }
+
+
+size_t read_matrix( FILE *fh,                    /* file handle */
+		    double **m,		         /* matrix */
+		    int nrl,		         /* first row */
+		    int nrh,		         /* last row */
+		    int ncl,		         /* first line */
+		    int nch )
+{   
+    int i, j, k;
+
+    float *Buff;
+    int SizeCol;
+    int SizeRow;
+    int Size;
+    int nRead;
+    
+    /* read matrix in the array */
+    SizeRow = nrh - nrl + 1;
+    SizeCol = nch - ncl + 1;
+    Size    = SizeRow * SizeCol;
+
+    /* create buffer  */
+    Buff  = (float *)malloc( Size * sizeof(float) );
+
+    nRead = fread( Buff, sizeof(float), Size, fh );
+
+    /* exit the routine if EOF (end of file) */
+    if( feof( fh ))
+	return EOF;
+
+    /* some errors  ? */
+    if( nRead != Size )
+    {
+	char szBuff[80];
+	sprintf( szBuff, "Error: Cann't read the file %s", "unknown" );
+	ERROR( szBuff );
+    }
+
+    /* copy the buffer into array */
+    k = 0;
+    for( j = ncl; j <= nch; j++)
+	for( i = nrl; i <= nrh; i++)
+	{
+	    m[i][j] = Buff[k++];
+	}
+
+    free( Buff );
+
+    return nRead;
+}
+
 
 
 /* ----------------------------------------------------------------------- */
@@ -421,85 +456,3 @@ void init_imatrix( int **m, int nrl, int nrh, int ncl, int nch, int a)
 	   m[i][j] = a;
 }
 
-
-int **read_pgm(const char *filename)
-{
-    FILE *input = NULL;
-    char line[1024];
-    int levels;
-    int xsize, ysize;
-    int i1, j1;
-    int **pic = NULL;
-    
-
-    if ((input=fopen(filename,"rb"))==0)
-    {
-       char szBuff[80];
-	   sprintf( szBuff, "Can not read file %s !!!", filename );
-	   ERROR( szBuff );
-    }
-
-    /* check for the right "magic number" */
-    if ( fread(line,1,3,input)!=3 )
-    {
-	    fclose(input);
-	    ERROR("Error Wrong Magic field!");
-    }
-
-    /* skip the comments */
-    do
-    fgets(line,sizeof line,input);
-    while(*line=='#');
-
-    /* read the width and height */
-    sscanf(line,"%d %d\n",&xsize,&ysize);
-
-    printf("Image size: %d x %d\n", xsize,ysize);
-
-    /* read # of gray levels */
-    fgets(line,sizeof line,input);
-    sscanf(line,"%d\n",&levels);
-
-    /* allocate memory for image */
-    pic = imatrix(0,xsize+2,0,ysize+2);
-    printf("Image initialised...\n");
-
-    /* read pixel row by row */
-    for(j1=1; j1 < ysize+1; j1++)
-    {
-	    for (i1=1; i1 < xsize+1; i1++)
-	    {
-	        int byte;
-            fscanf(input, "%d", &byte);
-
-	        if (byte==EOF)
-	        {
-		        fclose(input);
-		        ERROR("read failed");
-	        }
-	        else
-	        {
-		        pic[i1][ysize+1-j1] = byte;
-		        printf("%d,%d: %d\n", i1,ysize+1-j1,byte);
-	        }
-	     }
-    }
-    for (i1 = 0; i1 < xsize+2; i1++)
-    {
-        pic[i1][0] = 0;
-    }
-    for (i1 = 0; i1 < xsize+2; i1++)
-    {
-        pic[i1][ysize+1] = 0;
-    }
-    for (j1 = 0; j1 < ysize+2; j1++)
-    {
-        pic[0][j1] = 0;
-        pic[xsize+1][j1] = 0;
-    }
-
-    /* close file */
-    fclose(input);
-    
-    return pic;
-}

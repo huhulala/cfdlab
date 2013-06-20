@@ -22,7 +22,9 @@ int read_parameters( const char *szFileName,       /* name of the file */
                     int  *itermax,             /* max. number of iterations  */
 		                               /* for pressure per time step */
                     double *eps,               /* accuracy bound for pressure*/
-		    double *dt_value)           /* time for output */
+                    double *dt_value,
+                    int *iproc,
+                    int *jproc)           /* time for output */
 {
    READ_DOUBLE( szFileName, *xlength );
    READ_DOUBLE( szFileName, *ylength );
@@ -48,6 +50,10 @@ int read_parameters( const char *szFileName,       /* name of the file */
    READ_DOUBLE( szFileName, *GY );
    READ_DOUBLE( szFileName, *PI );
 
+   /* read domain decomposition values */
+   READ_INT   ( szFileName, *iproc );
+   READ_INT   ( szFileName, *jproc );
+
    *dx = *xlength / (double)(*imax);
    *dy = *ylength / (double)(*jmax);
 
@@ -58,15 +64,7 @@ int read_parameters( const char *szFileName,       /* name of the file */
 void init_uvp(double UI, double VI, double PI, int imax, int jmax,
 		double **U, double **V, double **P)
 {
-	int i;
-	int j;
-	for(i=1; i<=imax; i++)
-	{
-		for(j=1; j<=jmax; j++)
-		{
-			U[i][j] = UI;
-			V[i][j] = VI;
-			P[i][j] = PI;
-		}
-	}
+    init_matrix(U, 0, imax + 1, 0, jmax + 1, UI);
+    init_matrix(V, 0, imax + 1, 0, jmax + 1, VI);
+    init_matrix(P, 0, imax + 1, 0, jmax + 1, PI);
 }

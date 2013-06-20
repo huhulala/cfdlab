@@ -36,7 +36,11 @@ void calculate_fg(
   double **U,
   double **V,
   double **F,
-  double **G
+  double **G,
+  int rank_l,
+  int rank_r,
+  int rank_b,
+  int rank_t
 );
 
 
@@ -103,7 +107,11 @@ void calculate_uv(
   double **V,
   double **F,
   double **G,
-  double **P
+  double **P,
+  int rank_l,
+  int rank_r,
+  int rank_b,
+  int rank_t
 );
 
 #endif
